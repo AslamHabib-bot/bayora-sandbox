@@ -33,6 +33,13 @@ Without Docker you can still run the logic tests: `pip install cryptography pyte
 | Red again | Blue's hidden rule now blocks the attack; red sees only the verdict |
 | Audit verify | Hash chain and Ed25519 signatures valid |
 | Tamper | Editing one entry is detected (`TAMPERING DETECTED`) |
+##Demo screenshots
+**1. Docker build and startup**
+![Docker build](docker-build.jpeg)
+**2. Network isolation tests**
+![network isolation](network-isolation.jpeg)
+**3. Security tests results**
+![Security test results](security-tests-results.jpeg)
 
 ## Mapping to the evaluation objectives
 1. **Isolate without breaking function**: internal networks + brokered API; the full flow runs in seconds.
