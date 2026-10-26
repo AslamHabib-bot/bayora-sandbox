@@ -1,0 +1,61 @@
+# Bayora sandbox PoC: red team, blue team and client LLM isolated from each other.
+# The broker is the only service attached to more than one network.
+
+x-hardening: &hardening
+  read_only: true                        # immutable root filesystem
+  cap_drop: [ALL]                        # no Linux capabilities
+  security_opt: ["no-new-privileges:true"]
+  pids_limit: 128                        # fork-bomb protection
+  mem_limit: 256m                        # cgroup memory cap
+  cpus: 0.5                              # cgroup CPU cap (limits noisy-neighbour timing effects)
+  tmpfs: ["/tmp:size=16m,noexec,nosuid"]
+  restart: unless-stopped
+
+networks:        # internal: true = no route to the internet or the host
+  red_net:  { internal: true }
+  blue_net: { internal: true }
+  llm_net:  { internal: true }
+
+volumes:
+  audit_data:
+
+services:
+  broker:
+    <<: *hardening
+    build: ./broker
+    networks: [red_net, blue_net, llm_net]
+    environment:
+      RED_TOKEN: ${RED_TOKEN:?run ./demo.sh or copy .env.example to .env}
+      BLUE_TOKEN: ${BLUE_TOKEN:?}
+      AUDITOR_TOKEN: ${AUDITOR_TOKEN:?}
+      LLM_URL: http://llm:8000
+    volumes:
+      - audit_data:/data                 # only the broker can write the audit log / signing key
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 8080), 2)"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  llm:
+    <<: *hardening
+    build: ./llm
+    networks: [llm_net]                  # reachable only by the broker
+    # environment:                        # uncomment to use a real local model instead of the mock
+    #   OLLAMA_URL: http://ollama:11434
+
+  red:
+    <<: *hardening
+    build: ./red
+    networks: [red_net]                  # can see the broker, nothing else
+    environment:
+      BROKER_URL: http://broker:8080
+      RED_TOKEN: ${RED_TOKEN}
+
+  blue:
+    <<: *hardening
+    build: ./blue
+    networks: [blue_net]                 # can see the broker, nothing else
+    environment:
+      BROKER_URL: http://broker:8080
+      BLUE_TOKEN: ${BLUE_TOKEN}
