@@ -60,8 +60,8 @@ Non-root user, read-only root filesystem, all capabilities dropped, `no-new-priv
 The broker is a single trusted component, containers share a kernel, and the default LLM is a mock. See the threat model for the full list and future work (gVisor/Firecracker, KMS-held signing key, per-tenant GPUs, external log anchoring).
 
 ## TODO for the team
-- [ ] Run `./demo.sh` on a machine with Docker and fix anything environment-specific
+- [x] Run `./demo.sh` on a machine with Docker and fix anything environment-specific
 - [ ] Swap in a real local model (Ollama) and test prefix-cache behaviour
 - [ ] Load real payloads from JailbreakBench / HarmBench into `red/`
 - [ ] Add a timing-leak experiment and report the result honestly
-- [ ] Record a backup demo video
+- [x] Record a backup demo video
